@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Каталог товаров: читать могут все посетители, добавлять/редактировать — все (или авторизованные)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Заказы клиентов: оформлять могут все, просматривать — авторизованные
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update: if true;
+    }
+
+    // Профили пользователей
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
