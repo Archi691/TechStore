@@ -12,7 +12,7 @@ service cloud.firestore {
     // Заказы клиентов: оформлять могут все, просматривать — авторизованные
     match /orders/{orderId} {
       allow create: if true;
-      allow read, update: if true;
+      allow read, update, delete: if true;
     }
 
     // Профили пользователей

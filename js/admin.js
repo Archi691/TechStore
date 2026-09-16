@@ -392,13 +392,16 @@ export async function renderAdminOrdersTable() {
           <td><b>${formatPrice(ord.totalPrice)}</b></td>
           <td><span class="badge ${statusBadgeClass}">${ord.status || 'Новый'}</span></td>
           <td>
-            <select class="input-field order-status-select" data-id="${ord.id}" style="padding: 0.25rem 0.5rem; font-size: 0.8125rem;">
-              <option value="Новый" ${ord.status === 'Новый' ? 'selected' : ''}>Новый</option>
-              <option value="В обработке" ${ord.status === 'В обработке' ? 'selected' : ''}>В обработке</option>
-              <option value="Отправлен" ${ord.status === 'Отправлен' ? 'selected' : ''}>Отправлен</option>
-              <option value="Доставлен" ${ord.status === 'Доставлен' ? 'selected' : ''}>Доставлен</option>
-              <option value="Отменён" ${ord.status === 'Отменён' ? 'selected' : ''}>Отменён</option>
-            </select>
+            <div class="flex gap-2">
+              <select class="input-field order-status-select" data-id="${ord.id}" style="padding: 0.25rem 0.5rem; font-size: 0.8125rem;">
+                <option value="Новый" ${ord.status === 'Новый' ? 'selected' : ''}>Новый</option>
+                <option value="В обработке" ${ord.status === 'В обработке' ? 'selected' : ''}>В обработке</option>
+                <option value="Отправлен" ${ord.status === 'Отправлен' ? 'selected' : ''}>Отправлен</option>
+                <option value="Доставлен" ${ord.status === 'Доставлен' ? 'selected' : ''}>Доставлен</option>
+                <option value="Отменён" ${ord.status === 'Отменён' ? 'selected' : ''}>Отменён</option>
+              </select>
+              <button type="button" class="btn btn-danger btn-sm delete-order-btn" data-id="${ord.id}">Удалить</button>
+            </div>
           </td>
         </tr>
       `;
@@ -413,9 +416,29 @@ export async function renderAdminOrdersTable() {
       });
     });
 
+    tbody.querySelectorAll(".delete-order-btn").forEach(btn => {
+      btn.addEventListener("click", () => deleteOrder(btn.dataset.id));
+    });
+
   } catch (error) {
     console.error("Failed to fetch admin orders:", error);
     tbody.innerHTML = `<tr><td colspan="7" class="form-error">Ошибка загрузки списка заказов из Firestore.</td></tr>`;
+  }
+}
+
+/**
+ * Delete order document from Firestore
+ */
+async function deleteOrder(orderId) {
+  if (!confirm(`Вы уверены, что хотите удалить заказ #${orderId.slice(0, 8)} из Cloud Firestore?`)) return;
+
+  try {
+    await deleteDoc(doc(db, "orders", orderId));
+    showToast("Заказ удален из базы данных", "info");
+    await renderAdminOrdersTable();
+  } catch (error) {
+    console.error("Delete order error:", error);
+    showToast("Ошибка удаления заказа", "error");
   }
 }
 
